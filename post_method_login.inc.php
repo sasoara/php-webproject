@@ -42,19 +42,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	// user herauslesen und einloggen
 	if (empty($error)) {
 
-		$query = "SELECT username, password FROM users WHERE username=?";
+		$query = "SELECT id, username, password FROM users WHERE username=??";
 		// query vorbereiten
 		$stmt = $mysqli->prepare($query);
 		if ($stmt === false) {
-			$error .= 'prepare() faild ' . $mysqli->error . '<br />';
+			$error .= 'prepare() failed ' . $mysqli->error . '<br />';
 		}
 		// parameter an query binden
-		if (!$stmt->bind_param("s", $username)) {
-			$error .= 'bind_param() faild ' . $mysqli->error . '<br />';
+		if (!$stmt->bind_param("is", $id, $username)) {
+			$error .= 'bind_param() failed ' . $mysqli->error . '<br />';
 		}
 		// query ausführen
 		if (!$stmt->execute()) {
-			$error .= 'bind_param() faild ' . $mysqli->error . '<br />';
+			$error .= 'bind_param() failed ' . $mysqli->error . '<br />';
 		}
 		// daten auslesen
 		$result = $stmt->get_result();
@@ -67,9 +67,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 					// session starten
 					session_start();
 					session_regenerate_id(true);
+					// ID und Name des Users in der Session speichern
 					$_SESSION['loggedin'] = true;
+					$_SESSION['userId'] = $row['id'];
 					$_SESSION['username'] = $row['username'];
-					// Session = userID
 					header("Location: book.php");
 				} else {
 					$error .= "Benutzername oder Passwort sind falsch";

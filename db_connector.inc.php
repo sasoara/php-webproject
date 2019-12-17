@@ -5,7 +5,13 @@
  * @internal Skript, welches die Verbindung zur Datenbank herstellt.
  */
 
-include('db_properties.inc.php');
+ // sollte nicht als Plaintext dastehen.
+$host = ''; // host
+$username = ''; // username
+$password = ''; // password
+$database = ''; // database
+
+include('db_properties.php');
 
 // mit Datenbank verbinden
 $mysqli = new mysqli($host, $username, $password, $database);
@@ -14,5 +20,3 @@ $mysqli = new mysqli($host, $username, $password, $database);
 if ($mysqli->connect_error) {
 die('Connect Error (' . $mysqli->connect_errno . ') '. $mysqli->connect_error);
 }
-
-?>
