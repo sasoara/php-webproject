@@ -42,14 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	// user herauslesen und einloggen
 	if (empty($error)) {
 
-		$query = "SELECT id, username, password FROM users WHERE username=??";
+		$query = "SELECT id, username, password FROM users WHERE username=?";
 		// query vorbereiten
 		$stmt = $mysqli->prepare($query);
 		if ($stmt === false) {
 			$error .= 'prepare() failed ' . $mysqli->error . '<br />';
 		}
 		// parameter an query binden
-		if (!$stmt->bind_param("is", $id, $username)) {
+		if (!$stmt->bind_param("s", $username)) {
 			$error .= 'bind_param() failed ' . $mysqli->error . '<br />';
 		}
 		// query ausführen
