@@ -60,9 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
   // Hier wird die Funktion für die serverseitige Validierung aufgerufen.
   // https://regex101.com/
-  setField($firstname, 'firstname', "Vorname", "/^[A-ZÄÖÜ]{1,1}[a-zA-ZäÄöÖüÜß]{1,30}$/", $error);
-  setField($lastname, 'lastname', "Nachname", "/^[A-ZÄÖÜ]{1,1}[a-zäÄöÖüÜß]{0,}[A-ZÄÖÜ]{0,1}[a-zäÄöÖüÜß]{1,30}$/", $error);
-  setField($username, 'username', "Benutzername", "/^[a-zA-Z]+[a-zA-Z0-9]{5,30}$/", $error);
+  setField($firstname, 'firstname', "Vorname", "/^[A-ZÄÖÜ]{1}[a-zäÄöÖüÜßA-ZÄÖÜ]{1,29}$/", $error);
+  setField($lastname, 'lastname', "Nachname", "/^[A-ZÄÖÜ]{1}[a-zäÄöÖüÜßA-ZÄÖÜ]{1,29}$/", $error);
+  setField($username, 'username', "Benutzername", "/^([a-zA-Z]{1})([a-zA-Z0-9]{1,29})$/", $error);
   setField($email, 'email', "Email", "/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $error);
   setField($password, 'password', "Passwort", "/(?=^.{8,255}$)((?=.*\d+)(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/", $error);
 

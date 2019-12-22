@@ -10,7 +10,7 @@ $error = '';
 $message = '';
 
 if (!isset($_SESSION['username']) || session_id() == '') {
-    $message .= "Sie sind nun erfolgreich ausgeloggt";
+    $message .= "Sie sind nun erfolgreich ausgeloggt!";
 } else {
     $error .= "Da isch was falsch gloffe :O";
 }
