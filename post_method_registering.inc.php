@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
   print_r($_POST);
   echo "</pre>";
 
-  if ($_POST['home']) {
+  if (isset($_POST['home'])) {
     header("Location: index.php");
   }
 

@@ -12,7 +12,7 @@ session_regenerate_id(true);
 $error = '';
 $message = '';
 
-
+// Wenn kein Benutzer in der Session gespeichert wurde.
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
 } else {
@@ -29,7 +29,7 @@ if (isset($_POST['logout'])) {
 
 // Wenn profile Button getätigt wurde.
 if (isset($_POST['profile'])) {
-    header("Location: profile.php"); # TODO: profile.php erstellen
+    header("Location: profile.php");
 }
 ?>
 

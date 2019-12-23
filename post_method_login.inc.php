@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Sarah Bettinger | Tobias Schläpfer
  * @version 0.1
@@ -11,8 +12,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	print_r($_POST);
 	echo "</pre>";
 
-	if ($_POST['home']) {
-	  header("Location: index.php");
+	if (isset($_POST['home'])) {
+		header("Location: index.php");
 	}
 
 	// username
@@ -42,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	// user herauslesen und einloggen
 	if (empty($error)) {
 
-		$query = "SELECT id, username, password FROM users WHERE username=?";
+		$query = "SELECT id, firstname, lastname, email, username, password FROM users WHERE username=?";
 		// query vorbereiten
 		$stmt = $mysqli->prepare($query);
 		if ($stmt === false) {
@@ -59,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		// daten auslesen
 		$result = $stmt->get_result();
 		// benutzer vorhanden
-		if ($result->num_rows >=1) {
+		if ($result->num_rows >= 1) {
 			// userdaten lesen
 			while ($row = $result->fetch_assoc()) {
 				// passwort prüfen
@@ -71,6 +72,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 					$_SESSION['loggedin'] = true;
 					$_SESSION['userId'] = $row['id'];
 					$_SESSION['username'] = $row['username'];
+					$_SESSION['userFirstname'] = $row['firstname'];
+					$_SESSION['userLastname'] = $row['lastname'];
+					$_SESSION['userEmail'] = $row['email'];
 					header("Location: book.php");
 				} else {
 					$error .= "Benutzername oder Passwort sind falsch";
