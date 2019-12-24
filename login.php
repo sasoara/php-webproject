@@ -12,7 +12,7 @@ include('db_connector.inc.php');
 $error = '';
 $message = '';
 
-include('post_method_login.inc.php');
+include('login.inc.php');
 
 ?>
 <!DOCTYPE html>

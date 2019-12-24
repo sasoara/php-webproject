@@ -12,7 +12,7 @@ include('db_connector.inc.php');
 $error = '';
 $firstname = $lastname = $email = $username = '';
 
-include('post_method_registering.inc.php');
+include('registering.inc.php');
 
 ?>
 
