@@ -7,14 +7,14 @@
 
  // sollte nicht als Plaintext dastehen.
 $host = ''; // host
-$username = ''; // username
-$password = ''; // password
+$db_username = ''; // username
+$db_password = ''; // password
 $database = ''; // database
 
 include('db_properties.php');
 
 // mit Datenbank verbinden
-$mysqli = new mysqli($host, $username, $password, $database);
+$mysqli = new mysqli($host, $db_username, $db_password, $database);
 
 // Fehlermeldung, falls Verbindung fehlschlägt.
 if ($mysqli->connect_error) {
