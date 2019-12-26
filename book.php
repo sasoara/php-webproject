@@ -11,6 +11,12 @@ session_regenerate_id(true);
 
 $error = '';
 $message = '';
+$users_post = ''; // TODO: muss validiert und in $_SESSION['users-post-text'] geschrieben werden.
+$bool_post = false;
+$bool_update_button = false;
+// (Condition)?(thing's to do if condition true):(thing's to do if condition false);
+$bool_post === false ? $readonly = '' : $readonly = 'readonly';
+$bool_update_button === false ? $de_activate = '' : $de_activate = 'disabled';
 
 // Wenn kein Benutzer in der Session gespeichert wurde.
 if (!isset($_SESSION['username'])) {
@@ -31,6 +37,48 @@ if (isset($_POST['logout'])) {
 if (isset($_POST['profile'])) {
     header("Location: profile.php");
 }
+
+// Wenn reload Button getätigt wurde.
+if (isset($_POST['reload'])) {
+    header("Location: book.php");
+}
+
+if ($bool_post === true) {
+    // TODO: Input field auf 'readonly' schalten.
+    // TODO: Update Button 'disablen'.
+}
+
+// Wenn update Button getätigt wurde.
+if (isset($_POST['update'])) {
+    // TODO: Prüfen, ob Benutzer schon ein Post hat -> sonst readonly -> message, Post löschen
+    // TODO: Benutzereingaben serverseitig Validieren
+    // TODO: Eingaben in die Datenbank schreiben
+    // TODO: Anzeige anpassen
+}
+
+// Wenn delete Button getätigt wurde.
+if (isset($_POST['delete'])) {
+    // TODO: Users Post löschen
+    // TODO: Input field auf 'writeable' schalten
+    // TODO: Update Button auf 'active' schalten
+}
+
+
+/**
+ * SELECT u.username, p.text
+ * FROM users u
+ * INNER JOIN posts p ON u.id = p.id_user;
+ * -- Für alle User --
+ */
+
+/**
+ * SELECT text FROM posts
+ * WHERE id_user = 26;
+ * -- users post --
+ * $_SESSION['users-post-text']
+ */
+
+
 ?>
 
 <!DOCTYPE html>
@@ -84,9 +132,9 @@ if (isset($_POST['profile'])) {
                     </tbody>
                 </table>
             </div>
+            <br>
             <form action="" method="POST">
-                <input style="margin: 5px 0px;" type="text" name="post" class="form-control">
-                <button type="submit" name="send" value="send" class="btn btn-info">Send</button>
+                <button type="submit" name="reload" value="send" class="btn btn-info">Reload</button>
             </form>
         </div>
         <div name="user-container">
@@ -104,12 +152,12 @@ if (isset($_POST['profile'])) {
                 </table>
             </div>
             <form action="" method="POST">
-                <input style="margin: 5px 0px;" type="text" name="edit-users-post" class="form-control">
-                <button type="submit" name="update" value="update" class="btn btn-info">Update</button>
-                <button type="" name="button" value="reset" class="btn btn-warning">Delete</button>
+                <input <?php echo $readonly ?> style="margin: 5px 0px;" type="text" value="<?php echo $users_post ?>" name="users-post" class="form-control">
+                <button <?php echo $de_activate ?> type="submit" name="update" value="update" class="btn btn-info">Update</button>
+                <button type="" name="delete" value="reset" class="btn btn-warning">Delete</button>
                 <br>
                 <br>
-                <br>
+                <h2>Logout / Profile</h2>
                 <button type="submit" name="logout" value="logout" class="btn btn-info">Logout</button>
                 <button type="submit" name="profile" value="profile" class="btn btn-info">Profile</button>
             </form>
