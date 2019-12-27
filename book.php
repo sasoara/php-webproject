@@ -6,6 +6,9 @@
  * @internal Skript, welches die Benutzerinteraktion mit dem Gipfelbuch darstellt.
  */
 
+// Datenbankverbindung
+include('db_connector.inc.php');
+
 session_start();
 session_regenerate_id(true);
 
@@ -75,9 +78,33 @@ if (isset($_POST['delete'])) {
  * SELECT text FROM posts
  * WHERE id_user = 26;
  * -- users post --
- * $_SESSION['users-post-text']
+ * $_SESSION['users_post_text']
  */
 
+$query = "SELECT text FROM posts WHERE id_user = ?";
+// query vorbereiten
+$stmt = $mysqli->prepare($query);
+if ($stmt === false) {
+    $error .= 'prepare() failed ' . $mysqli->error . '<br />';
+}
+// parameter an query binden
+if (!$stmt->bind_param("i", $_SESSION['userId'])) {
+    $error .= 'bind_param() failed ' . $mysqli->error . '<br />';
+}
+// query ausführen
+if (!$stmt->execute()) {
+    $error .= 'bind_param() failed ' . $mysqli->error . '<br />';
+}
+// daten auslesen
+$result = $stmt->get_result();
+
+if ($result->num_rows) {
+    // userdaten lesen
+    while ($row = $result->fetch_assoc()) {
+        $_SESSION['users_post_text'] = $row['text'];
+    }
+}
+$stmt->close();
 
 ?>
 
@@ -144,8 +171,8 @@ if (isset($_POST['delete'])) {
                 <table style="border-collapse:unset;border-spacing:10px;width:100%;">
                     <tbody>
                         <tr>
-                            <td style="color: #3c763d;background-color: #dff0d8;width:100%;">Text des Users
-                                <!-- TODO: <?php echo $_SESSION['users-post-text'] ?> -->
+                            <td style="color: #3c763d;background-color: #dff0d8;width:100%;">
+                                <?php echo $_SESSION['users_post_text'] ?>
                             </td>
                         </tr>
                     </tbody>
