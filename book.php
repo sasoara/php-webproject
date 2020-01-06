@@ -13,19 +13,20 @@ session_start();
 session_regenerate_id(true);
 
 $error = '';
+$error_post = '';
 $message = '';
-$users_post = ''; // TODO: muss validiert und in $_SESSION['users-post-text'] geschrieben werden.
+$users_post = '';
 $bool_post = false;
 $bool_update_button = false;
 // (Condition)?(thing's to do if condition true):(thing's to do if condition false);
-$bool_post === false ? $readonly = '' : $readonly = 'readonly';
-$bool_update_button === false ? $de_activate = '' : $de_activate = 'disabled';
+$readonly = $bool_post === false ? '' : 'readonly';
+$de_activate = $bool_update_button === false ? '' : 'disabled';
 
 // Wenn kein Benutzer in der Session gespeichert wurde.
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
 } else {
-    $message .= "Willkommen " . $_SESSION['username'] . " Sie sind nun eingeloggt!";
+    $message .= "Welcome " . $_SESSION['username'] . ", you are now logged in!";
 }
 
 // Wenn logout Button getätigt wurde.
@@ -46,44 +47,62 @@ if (isset($_POST['reload'])) {
     header("Location: book.php");
 }
 
-if ($bool_post === true) {
-    // TODO: Input field auf 'readonly' schalten.
-    // TODO: Update Button 'disablen'.
+/**
+ * --Serverseitige Validierung--
+ * Funktion, die prüft, ob die Eingaben den Vorgaben entsprechen.
+ * Sie trimmt Leerzeichen, encodet Html-Charakter
+ * Bei Fehlern wird eine entsprechende Rückmeldung gegeben.
+ */
+function cleanUpInput($input)
+{
+    return trim(htmlspecialchars($input));
+}
+function setField(&$field, $fieldSelector, $regex, &$error)
+{
+    if (isset($_POST[$fieldSelector])) {
+        $inputField = cleanUpInput($_POST[$fieldSelector]);
+        if (preg_match($regex, $inputField)) {
+            $field = $inputField;
+        } else {
+            $error .= "Your post does not meet the requirements.";
+        }
+    } else {
+        $error .= "Please leave a comment.";
+    }
 }
 
 // Wenn update Button getätigt wurde.
 if (isset($_POST['update'])) {
-    // TODO: Prüfen, ob Benutzer schon ein Post hat -> sonst readonly -> message, Post löschen
-    // TODO: Benutzereingaben serverseitig Validieren
-    // TODO: Eingaben in die Datenbank schreiben
-    // TODO: Anzeige anpassen
+    // Benutzereingaben serverseitig Validieren
+    setField($users_post, 'users-post', "/^[a-zA-Z0-9-_!?,.\/\s\&\*\`\$\|\£]{15,140}$/", $error);
+
+    if (empty($error)) {
+        $query = "INSERT INTO posts (text, id_user) VALUES (?, ?)";
+        $stmt = $mysqli->prepare($query);
+        $stmt->bind_param("si", $users_post, $_SESSION['userId']);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
 
 // Wenn delete Button getätigt wurde.
 if (isset($_POST['delete'])) {
-    // TODO: Users Post löschen
-    // TODO: Input field auf 'writeable' schalten
-    // TODO: Update Button auf 'active' schalten
+    if (empty($error)) {
+        $query = "DELETE FROM posts WHERE id_user = ?";
+        $stmt = $mysqli->prepare($query);
+        $stmt->bind_param("i", $_SESSION['userId']);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
 
-
 /**
- * SELECT u.username, p.text
- * FROM users u
- * INNER JOIN posts p ON u.id = p.id_user;
- * -- Für alle User --
+ * Für den einen User-Post
  */
-
-/**
- * SELECT text FROM posts
- * WHERE id_user = 26;
- * -- users post --
- * $_SESSION['users_post_text']
- */
-
 $query = "SELECT text FROM posts WHERE id_user = ?";
-// query vorbereiten
 $stmt = $mysqli->prepare($query);
+
+// query vorbereiten
 if ($stmt === false) {
     $error .= 'prepare() failed ' . $mysqli->error . '<br />';
 }
@@ -93,19 +112,28 @@ if (!$stmt->bind_param("i", $_SESSION['userId'])) {
 }
 // query ausführen
 if (!$stmt->execute()) {
-    $error .= 'bind_param() failed ' . $mysqli->error . '<br />';
+    $error .= 'execute() failed ' . $mysqli->error . '<br />';
 }
-// daten auslesen
-$result = $stmt->get_result();
+// results herausschreiben
+$results = $stmt->get_result();
 
-if ($result->num_rows) {
-    // userdaten lesen
-    while ($row = $result->fetch_assoc()) {
+// daten auslesen
+if ($results->num_rows == 1) {
+    // userdaten (post) lesen
+    while ($row = $results->fetch_assoc()) {
         $_SESSION['users_post_text'] = $row['text'];
+        $bool_post = true;
+        $bool_update_button = true;
+        $readonly = $bool_post === false ? '' : 'readonly';
+        $de_activate = $bool_update_button === false ? '' : 'disabled';
     }
+} elseif ($results->num_rows == 0) {
+    $error_post .= "You don't have a post yet.";
+    $_SESSION['users_post_text'] = '<b>⊙﹏⊙ . . no post</b>';
+} else {
+    $error_post .= "You already have a contribution!";
 }
 $stmt->close();
-
 ?>
 
 <!DOCTYPE html>
@@ -128,11 +156,16 @@ $stmt->close();
     <div class="container">
         <h1>Book</h1>
         <?php
-        // Hier werden mögliche Fehlermeldungen ausgegeben.
+        // Hier werden Statements ausgegeben.
         if (!empty($message)) {
             echo "<div class=\"alert alert-success\" role=\"alert\">" . $message . "</div>";
-        } else if (!empty($error)) {
+        }
+        // Hier werden mögliche Fehlermeldungen ausgegeben.
+        if (!empty($error)) {
             echo "<div class=\"alert alert-danger\" role=\"alert\">" . $error . "</div>";
+        }
+        if (!empty($error_post)) {
+            echo "<div style=\"background-color: #f0e6d8;border-color: #e9dac6; color:#765f3c\" class=\"alert alert-danger\" role=\"alert\">" . $error_post . "</div>";
         }
         ?>
         <div name="all-user-container">
@@ -140,22 +173,24 @@ $stmt->close();
             <div style="background: #5bc0de;border-color: #46b8da;border-radius: 4px;padding: 2px;">
                 <table style="border-collapse:unset;border-spacing:10px;">
                     <tbody>
-                        <tr onMouseOver="style.background='#BDC3C7', style.color='#fff'" onMouseOut="style.background='#5bc0de', style.color='#333'">
-                            <td style="padding:3px">AllPosts
-                                <!-- TODO: <?php foreach ($variable as $key => $value) {
-                                                # code...
-                                            } ?> -->
-                            </td>
-                            <td style="color: #fff;background: #000;padding:1px 1px 1px 5px;width:100%;">Lorem ipsum sit amet</td>
-                        </tr>
-                        <tr onMouseOver="style.background='#BDC3C7', style.color='#fff'" onMouseOut="style.background='#5bc0de', style.color='#333'">
-                            <td style="padding:3px">Marius</td>
-                            <td style="color: #fff;background: #000;padding:1px 1px 1px 5px;width:100%;">Lorem ipsum sit amet</td>
-                        </tr>
-                        <tr onMouseOver="style.background='#BDC3C7', style.color='#fff'" onMouseOut="style.background='#5bc0de', style.color='#333'">
-                            <td style="padding:3px">Marius</td>
-                            <td style="color: #fff;background: #000;padding:1px 1px 1px 5px;width:100%;">Lorem ipsum sit amet</td>
-                        </tr>
+                        <?php
+                        /**
+                         * Für alle User
+                         */
+                        $query = "SELECT DISTINCT u.username, p.text FROM users u INNER JOIN posts p ON u.id = p.id_user";
+                        $stmt = $mysqli->prepare($query);
+                        $stmt->execute();
+                        // results herausschreiben
+                        $post_results = $stmt->get_result();
+                        while ($row = $post_results->fetch_assoc()) {
+                        ?>
+                            <tr onMouseOver="style.background='#BDC3C7', style.color='#fff'" onMouseOut="style.background='#5bc0de', style.color='#333'">
+                                <td style="padding:3px"><?php echo $row['username'] ?></td>
+                                <td style="color: #fff;background: #000;padding:1px 1px 1px 5px;width:100%;"><?php echo $row['text'] ?></td>
+                            </tr>
+                        <?php }
+                                                                                                            $stmt->close();
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -179,7 +214,8 @@ $stmt->close();
                 </table>
             </div>
             <form action="" method="POST">
-                <input <?php echo $readonly ?> style="margin: 5px 0px;" type="text" value="<?php echo $users_post ?>" name="users-post" class="form-control">
+                <input <?php echo $readonly ?> style="margin: 5px 0px;" type="text" name="users-post" class="form-control" placeholder="Enter a comment." minlength="15" maxlength="140" pattern="/^[a-zA-Z0-9-_!?,.\/\s\&\*\`\$\|\£]{15,140}$/">
+                <p>Write a comment with at <u>least</u> <b>15</b> and a <u>maximum</u> of <b>140</b> characters!</p>
                 <button <?php echo $de_activate ?> type="submit" name="update" value="update" class="btn btn-info">Update</button>
                 <button type="" name="delete" value="reset" class="btn btn-warning">Delete</button>
                 <br>
